@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>What to eat for lunch</title>
+    <link rel="stylesheet" href="bootstrap.min.css" />
+    <style>
+      /* The snackbar - position it at the bottom and in the middle of the screen */
+      #snackbar {
+        visibility: hidden; /* Hidden by default. Visible on click */
+        min-width: 250px; /* Set a default minimum width */
+        margin-left: -125px; /* Divide value of min-width by 2 */
+        background-color: #333; /* Black background color */
+        color: #fff; /* White text color */
+        text-align: center; /* Centered text */
+        border-radius: 2px; /* Rounded borders */
+        padding: 16px; /* Padding */
+        position: fixed; /* Sit on top of the screen */
+        z-index: 1; /* Add a z-index if needed */
+        left: 50%; /* Center the snackbar */
+        bottom: 30px; /* 30px from the bottom */
+      }
+
+      /* Show the snackbar when clicking on a button (class added with JavaScript) */
+      #snackbar.show {
+        visibility: visible; /* Show the snackbar */
+        /* Add animation: Take 0.5 seconds to fade in and out the snackbar. 
+  However, delay the fade out process for 2.5 seconds */
+        -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
+        animation: fadein 0.5s, fadeout 0.5s 2.5s;
+      }
+
+      /* Animations to fade the snackbar in and out */
+      @-webkit-keyframes fadein {
+        from {
+          bottom: 0;
+          opacity: 0;
+        }
+        to {
+          bottom: 30px;
+          opacity: 1;
+        }
+      }
+
+      @keyframes fadein {
+        from {
+          bottom: 0;
+          opacity: 0;
+        }
+        to {
+          bottom: 30px;
+          opacity: 1;
+        }
+      }
+
+      @-webkit-keyframes fadeout {
+        from {
+          bottom: 30px;
+          opacity: 1;
+        }
+        to {
+          bottom: 0;
+          opacity: 0;
+        }
+      }
+
+      @keyframes fadeout {
+        from {
+          bottom: 30px;
+          opacity: 1;
+        }
+        to {
+          bottom: 0;
+          opacity: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <header>
+        <ul class="nav nav-pills nav-fill">
+          <li
+            class="nav-item nav-link"
+            v-for="(n, key) in nav"
+            :key="key"
+            :class="n===chosen?'active':''"
+            @click="setChosen(n)"
+          >
+            {{ n }}
+          </li>
+        </ul>
+      </header>
+
+      <main class="mt-5">
+        <div class="container">
+          <div class="row mb-2">
+            <h1>{{ chosen }}</h1>
+          </div>
+          <div class="row" v-if="chosen==='Foods'">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th scope="col">#</th>
+                  <th scope="col">Foods</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="(f, key) in foods"
+                  :key="key"
+                  :class="isEaten(f)?'bg-light':''"
+                >
+                  <th scope="row">{{ key + 1 }}</th>
+                  <td
+                    :style="isEaten(f) ? 'text-decoration: line-through;': ''"
+                  >
+                    {{ f }}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="row" v-else-if="chosen==='Eaten'">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th scope="col">#</th>
+                  <th scope="col">Foods Eaten This Week</th>
+                  <th scope="col">Delete</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(f, key) in eaten" :key="key">
+                  <th scope="row">{{ key + 1 }}</th>
+                  <td>
+                    {{ f }}
+                  </td>
+                  <td>
+                    <button
+                      @click="deleteEaten(f)"
+                      type="button"
+                      class="btn btn-danger"
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div class="input-group mb-3">
+              <input
+                @keyup.enter="addEaten"
+                type="text"
+                class="form-control"
+                placeholder="Add Eaten"
+              />
+            </div>
+          </div>
+          <div class="row" v-else-if="chosen==='Developer'">
+            <div class="col-12">
+              <h1>Docs</h1>
+            </div>
+            <div class="col-12">
+              <h3>SSH</h3>
+              <pre>
+                <code>
+ssh pi@192.168.0.192
+
+password: raspberry
+                </code>
+              </pre>
+            </div>
+            <div class="col-12">
+              <h3>API Call</h3>
+            </div>
+            <div class="col-6">
+              <h4>GET /eaten.json</h4>
+              <p>Foods eaten this week</p>
+            </div>
+            <div class="col-6">
+              <h4>GET /foods.json</h4>
+              <p>All Available Foods here</p>
+            </div>
+            <div class="col-6">
+              <h4>POST /api/food</h4>
+              <p>To add a food</p>
+              <pre><code>
+{
+  "food": "Bah kut teh"
+}
+              </code></pre>
+            </div>
+            <div class="col-6">
+              <h4>POST /api/eaten</h4>
+              <p>To add an eaten food (must be in foods.json)</p>
+              <pre><code>
+{
+  "eaten": "Bah kut teh"
+}
+                </code></pre>
+            </div>
+            <div class="col-6">
+              <h4>DELETE /api/eaten</h4>
+              <p>To delete an eaten food (must be in eaten.json)</p>
+              <pre><code>
+{
+  "eaten": "Bah kut teh"
+}
+                  </code></pre>
+            </div>
+          </div>
+          <div class="row jumbotron" v-else>
+            <h1>Welcome to What to eat for lunch site</h1>
+          </div>
+        </div>
+      </main>
+    </div>
+    <div id="snackbar"></div>
+    <script src="vue.min.js"></script>
+    <script>
+      new Vue({
+        el: "#app",
+        data() {
+          return {
+            nav: ["Home", "Foods", "Eaten", "Developer"],
+            chosen: "Home",
+            foods: [],
+            eaten: []
+          };
+        },
+        methods: {
+          deleteEaten(val) {
+            const that = this;
+            fetch("/api/eaten", {
+              method: "DELETE",
+              body: JSON.stringify({ eaten: val }),
+              headers: {
+                "Content-Type": "application/json"
+              }
+            })
+              .then(function(res) {
+                return res.json();
+              })
+              .then(function(data) {
+                if (data.success === false) {
+                  window.showSnackbar(data.message);
+                } else {
+                  that.eaten = data;
+                  window.showSnackbar("Deleted " + val);
+                }
+              })
+              .catch(function(err) {
+                console.log(err);
+              });
+          },
+          addEaten(e) {
+            const that = this;
+            const val = e.target.value;
+            fetch("/api/eaten", {
+              method: "POST",
+              body: JSON.stringify({ eaten: val }),
+              headers: {
+                "Content-Type": "application/json"
+              }
+            })
+              .then(function(res) {
+                return res.json();
+              })
+              .then(function(data) {
+                if (data.success === false) {
+                  window.showSnackbar(data.message);
+                } else {
+                  that.eaten = data;
+                  e.target.value = "";
+                  window.showSnackbar("Added " + val);
+                }
+              })
+              .catch(function(err) {
+                console.log(err);
+              });
+          },
+          isEaten(f) {
+            return this.eaten.indexOf(f) >= 0;
+          },
+          setChosen(chosen) {
+            this.chosen = chosen;
+            const chosenHash = "#" + chosen;
+            if (history.pushState) {
+              history.pushState(null, null, chosenHash);
+            } else {
+              location.hash = chosenHash;
+            }
+          },
+          getFoods() {
+            const that = this;
+            fetch("/foods.json")
+              .then(function(res) {
+                return res.json();
+              })
+              .then(function(data) {
+                that.foods = data;
+              });
+          },
+          getEaten() {
+            const that = this;
+            fetch("/eaten.json")
+              .then(function(res) {
+                return res.json();
+              })
+              .then(function(data) {
+                that.eaten = data;
+              });
+          }
+        },
+        computed: {},
+        created() {
+          const hash = location.hash.substr(1);
+          this.chosen = hash;
+          this.getFoods();
+          this.getEaten();
+        }
+      });
+    </script>
+    <script>
+      window.showSnackbar = function(text) {
+        // Get the snackbar DIV
+        var x = document.getElementById("snackbar");
+        snackbar.innerText = text;
+
+        // Add the "show" class to DIV
+        x.className = "show";
+
+        // After 3 seconds, remove the show class from DIV
+        setTimeout(function() {
+          x.className = x.className.replace("show", "");
+        }, 3000);
+      };
+    </script>
+  </body>
+</html>

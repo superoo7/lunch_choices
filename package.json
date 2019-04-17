@@ -11,6 +11,9 @@
   "license": "ISC",
   "dependencies": {
     "axios": "^0.18.0",
+    "body-parser": "^1.18.3",
+    "express": "^4.16.4",
+    "fs-extra": "^7.0.1",
     "node-cron": "^2.0.3",
     "say": "^0.15.0",
     "seedrandom": "^3.0.1"

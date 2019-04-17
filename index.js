@@ -2,46 +2,44 @@ const say = require("say");
 const seedrandom = require("seedrandom");
 const cron = require("node-cron");
 const axios = require("axios");
+const express = require("express");
+const fs = require("fs-extra");
+const bodyParser = require("body-parser");
 
-const FOODS = [
-  "chicken rice",
-  "dimsum",
-  "thai",
-  "vietnam",
-  "korean",
-  "appu",
-  "bah kut teh",
-  "wan tan mee",
-  "li",
-  "nyonya",
-  "ted boy",
-  "nandos",
-  "lean",
-  "penang",
-  "peng wah",
-  "naughty nuri",
-  "antipodean",
-  "vegetarian",
-  "vary pasta",
-  "clay pot chicken rice",
-  "yong tao fu",
-  "village park nasi lemak"
-];
+const app = express();
+app.use(bodyParser.json());
 
-function remindFood(seed) {
+const foodsFile = "public/foods.json";
+const eatenFile = "public/eaten.json";
+
+const getFoodsJson = async () => {
+  const foodsJson = await fs.readFile(foodsFile, "utf-8");
+  return JSON.parse(foodsJson);
+};
+
+const getEatenJson = async () => {
+  const eatenJson = await fs.readFile(eatenFile, "utf-8");
+  return JSON.parse(eatenJson);
+};
+
+async function remindFood(seed) {
+  const _foods = await getFoodsJson();
+  const eaten = await getEatenJson();
+  const foods = _foods.filter(f => eaten.indexOf(f) < 0);
+
   let counter = 1;
   const rng = seedrandom(seed);
-  const i = Math.floor(rng() * FOODS.length);
-  const food = FOODS[i];
+  const i = Math.floor(rng() * foods.length);
+  const food = foods[i];
 
   say.speak(`Today bitcoin is at ${seed}`);
 
   const clear = setInterval(() => {
     counter++;
-    if (counter > 5) {
+    if (counter > 3) {
       clearInterval(clear);
     }
-    say.speak(`Today we eat ${food}`, "Samantha", 1.0);
+    say.speak(`Today we eat ${food}`);
   }, 5000);
 }
 
@@ -51,9 +49,78 @@ const bitcoinPrice = () => {
   );
 };
 
+// 12.45 pm Monday - Friday
 cron.schedule("45 12 * * 1-5", () => {
   bitcoinPrice().then(data => {
     const seed = data.data["bitcoin"]["usd"];
     remindFood(seed);
   });
+});
+
+app.use(express.static("public"));
+
+// To add food
+app.post("/api/food", async (req, res) => {
+  // expect json in an array;
+  try {
+    const { food } = req.body;
+    if (typeof food !== "string") {
+      throw new Error("food must be string");
+    }
+    const foods = await getFoodsJson();
+    foods.push(food);
+    await fs.writeFile(foodsFile, JSON.stringify(foods));
+    res.status(200).json(foods);
+  } catch (err) {
+    res.status(403).json({ success: false, message: err.message });
+  }
+});
+
+// To add eaten
+app.post("/api/eaten", async (req, res) => {
+  // expect json in an array;
+  try {
+    const { eaten } = req.body;
+    if (typeof eaten !== "string") {
+      throw new Error("eaten must be string");
+    }
+    const foods = await getFoodsJson();
+    if (foods.indexOf(eaten) < 0) {
+      throw new Error("eaten is not in foods.json");
+    }
+    const eatenFoods = await getEatenJson();
+    if (eatenFoods.indexOf(eaten) >= 0) {
+      throw new Error("eaten is in eaten.json already");
+    }
+    eatenFoods.push(eaten);
+    await fs.writeFile(eatenFile, JSON.stringify(eatenFoods));
+    res.status(200).json(eatenFoods);
+  } catch (err) {
+    res.status(403).json({ success: false, message: err.message });
+  }
+});
+
+// To remove eaten
+app.delete("/api/eaten", async (req, res) => {
+  // expect json in an array;
+  try {
+    const { eaten } = req.body;
+    if (typeof eaten !== "string") {
+      throw new Error("eaten must be string");
+    }
+    let eatenFoods = await getEatenJson();
+    const i = eatenFoods.indexOf(eaten);
+    if (i < 0) {
+      throw new Error("eaten is not in eaten.json");
+    }
+    eatenFoods = eatenFoods.filter((_d, key) => key !== i);
+    await fs.writeFile(eatenFile, JSON.stringify(eatenFoods));
+    res.status(200).json(eatenFoods);
+  } catch (err) {
+    res.status(403).json({ success: false, message: err.message });
+  }
+});
+
+app.listen("3000", () => {
+  console.log("app started at port 3000");
 });

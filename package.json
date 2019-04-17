@@ -11,7 +11,7 @@
   "license": "ISC",
   "dependencies": {
     "axios": "^0.18.0",
-    "cron": "^1.7.0",
+    "node-cron": "^2.0.3",
     "say": "^0.15.0",
     "seedrandom": "^3.0.1"
   }

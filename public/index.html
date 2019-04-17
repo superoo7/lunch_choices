@@ -122,6 +122,14 @@
                 </tr>
               </tbody>
             </table>
+            <div class="input-group mb-3">
+              <input
+                @keyup.enter="addFood"
+                type="text"
+                class="form-control"
+                placeholder="Add Food"
+              />
+            </div>
           </div>
           <div class="row" v-else-if="chosen==='Eaten'">
             <table class="table">
@@ -213,8 +221,14 @@ password: raspberry
                   </code></pre>
             </div>
           </div>
-          <div class="row jumbotron" v-else>
+          <div class="column jumbotron" v-else>
             <h1>Welcome to What to eat for lunch site</h1>
+            <a
+              href="http://192.168.0.192:3000"
+              target="_blank"
+              rel="noopener noreferrer"
+              >192.168.0.192:3000</a
+            >
           </div>
         </div>
       </main>
@@ -275,6 +289,32 @@ password: raspberry
                   window.showSnackbar(data.message);
                 } else {
                   that.eaten = data;
+                  e.target.value = "";
+                  window.showSnackbar("Added " + val);
+                }
+              })
+              .catch(function(err) {
+                console.log(err);
+              });
+          },
+          addFood(e) {
+            const that = this;
+            const val = e.target.value;
+            fetch("/api/food", {
+              method: "POST",
+              body: JSON.stringify({ food: val }),
+              headers: {
+                "Content-Type": "application/json"
+              }
+            })
+              .then(function(res) {
+                return res.json();
+              })
+              .then(function(data) {
+                if (data.success === false) {
+                  window.showSnackbar(data.message);
+                } else {
+                  that.foods = data;
                   e.target.value = "";
                   window.showSnackbar("Added " + val);
                 }

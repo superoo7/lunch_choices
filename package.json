@@ -1,0 +1,18 @@
+{
+  "name": "tts",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.18.0",
+    "cron": "^1.7.0",
+    "say": "^0.15.0",
+    "seedrandom": "^3.0.1"
+  }
+}

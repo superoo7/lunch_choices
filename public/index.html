@@ -18,7 +18,7 @@
         border-radius: 2px; /* Rounded borders */
         padding: 16px; /* Padding */
         position: fixed; /* Sit on top of the screen */
-        z-index: 1; /* Add a z-index if needed */
+        z-index: 99; /* Add a z-index if needed */
         left: 50%; /* Center the snackbar */
         bottom: 30px; /* 30px from the bottom */
       }
@@ -274,6 +274,10 @@ password: raspberry
           addEaten(e) {
             const that = this;
             const val = e.target.value;
+            if (val === "") {
+              window.showSnackbar("No value entered");
+              return;
+            }
             fetch("/api/eaten", {
               method: "POST",
               body: JSON.stringify({ eaten: val }),
@@ -300,6 +304,10 @@ password: raspberry
           addFood(e) {
             const that = this;
             const val = e.target.value;
+            if (val === "") {
+              window.showSnackbar("No value entered");
+              return;
+            }
             fetch("/api/food", {
               method: "POST",
               body: JSON.stringify({ food: val }),

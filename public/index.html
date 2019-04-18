@@ -221,6 +221,18 @@ password: raspberry
                   </code></pre>
             </div>
           </div>
+          <div class="column jumbotron mt-5" v-else-if="chosen==='TTS'">
+            <h5 class="pb-1">Create Text-To-Speech</h5>
+            <div class="input-group mb-3">
+              <input
+                @keyup.enter="createTTS"
+                type="text"
+                class="form-control"
+                placeholder="Create TTS"
+              />
+            </div>
+            <p class="text-danger">BEWARE, MIGHT ANNOYED SOMEONE LOL</p>
+          </div>
           <div class="column jumbotron" v-else>
             <h1>Welcome to What to eat for lunch site</h1>
             <a
@@ -240,13 +252,42 @@ password: raspberry
         el: "#app",
         data() {
           return {
-            nav: ["Home", "Foods", "Eaten", "Developer"],
+            nav: ["Home", "Foods", "Eaten", "TTS", "Developer"],
             chosen: "Home",
             foods: [],
             eaten: []
           };
         },
         methods: {
+          createTTS(e) {
+            const that = this;
+            const val = e.target.value;
+            if (val === "") {
+              window.showSnackbar("No value entered");
+              return;
+            }
+            fetch("/api/tts", {
+              method: "POST",
+              body: JSON.stringify({ message: val }),
+              headers: {
+                "Content-Type": "application/json"
+              }
+            })
+              .then(function(res) {
+                return res.json();
+              })
+              .then(function(data) {
+                if (data.success === false) {
+                  window.showSnackbar(data.message);
+                } else {
+                  e.target.value = "";
+                  window.showSnackbar("Send TTS");
+                }
+              })
+              .catch(function(err) {
+                console.log(err);
+              });
+          },
           deleteEaten(val) {
             const that = this;
             fetch("/api/eaten", {

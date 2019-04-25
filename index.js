@@ -5,9 +5,16 @@ const axios = require("axios");
 const express = require("express");
 const fs = require("fs-extra");
 const bodyParser = require("body-parser");
+const rateLimit = require("express-rate-limit");
+
+const limiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 15 minutes
+  max: 120 // limit each IP to 100 requests per windowMs
+});
 
 const app = express();
 app.use(bodyParser.json());
+app.use(limiter);
 
 const foodsFile = "public/foods.json";
 const eatenFile = "public/eaten.json";
@@ -29,8 +36,16 @@ const sayAction = text => {
   });
 };
 
+let lock = false;
+
 async function reportLunch(seed, food) {
   let counter = 1;
+
+  if (lock) {
+    return;
+  }
+
+  lock = true;
 
   sayAction(`Today bitcoin is at ${seed}`);
 
@@ -38,6 +53,7 @@ async function reportLunch(seed, food) {
     counter++;
     if (counter > 3) {
       clearInterval(clear);
+      lock = false;
     }
     sayAction(`Today we eat ${food}`);
   }, 5000);

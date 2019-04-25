@@ -243,6 +243,17 @@ password: raspberry
             </div>
             <p class="text-danger">BEWARE, MIGHT ANNOYED SOMEONE LOL</p>
           </div>
+          <div class="row" v-if="chosen==='RandomFood'">
+            <button @click="getRandomFood" class="btn btn-lg btn-success">
+              Random Food
+            </button>
+            <div class="col-12 jumbotron">
+              <h4 v-if="randomFood.food">Food: {{ randomFood.food }}</h4>
+              <h4 v-if="randomFood.price">
+                Bitcoin Price: {{ randomFood.price }}
+              </h4>
+            </div>
+          </div>
           <div class="column jumbotron" v-else>
             <h1>Welcome to What to eat for lunch site</h1>
             <a
@@ -262,13 +273,21 @@ password: raspberry
         el: "#app",
         data() {
           return {
-            nav: ["Home", "Foods", "Eaten", "TTS", "Developer"],
+            nav: ["Home", "Foods", "Eaten", "TTS", "RandomFood", "Developer"],
             chosen: "Home",
             foods: [],
-            eaten: []
+            eaten: [],
+            randomFood: {}
           };
         },
         methods: {
+          getRandomFood() {
+            fetch("/api/random_food")
+              .then(d => d.json())
+              .then(d => {
+                this.randomFood = d.data;
+              });
+          },
           createTTS(e) {
             const that = this;
             const val = e.target.value;

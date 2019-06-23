@@ -25,7 +25,7 @@ const root = {
   },
   say: async ({ msg }) => {
     try {
-      await sayAction(msg);
+      sayAction(msg);
       return true;
     } catch (error) {
       return false;
@@ -47,7 +47,7 @@ const root = {
     const { data } = await cryptoPrice(id);
     const price = data[id]["usd"];
     const { food } = await remindFood(price);
-    reportLunch(price, food);
+    reportLunch(price, food, id);
     return {
       food,
       id,

@@ -8,7 +8,7 @@ const sayAction = text => {
   });
 };
 
-async function reportLunch(price, food) {
+async function reportLunch(price, food, id) {
   let counter = 1;
 
   if (lock) {
@@ -17,7 +17,7 @@ async function reportLunch(price, food) {
 
   lock = true;
 
-  return sayAction(`Today bitcoin is at ${price}`).then(() => {
+  return sayAction(`Today ${id} is at ${price}`).then(() => {
     const clear = setInterval(() => {
       counter++;
       if (counter > 3) {

@@ -90,7 +90,7 @@ app.get("/api/random_food", async (req, res) => {
   const seed = data.data["bitcoin"]["usd"];
   const d = await remindFood(seed);
   await fs.writeFile(randomFoodFile, JSON.stringify(d));
-  await reportLunch(d.price, d.food);
+  await reportLunch(d.price, d.food, "bitcoin");
   res.status(200).json({ success: true, data: d });
 });
 

@@ -1,11 +1,11 @@
 const say = require("say");
 const seedrandom = require("seedrandom");
-const cron = require("node-cron");
 const axios = require("axios");
 const express = require("express");
 const fs = require("fs-extra");
 const bodyParser = require("body-parser");
 const rateLimit = require("express-rate-limit");
+const path = require("path");
 
 const limiter = rateLimit({
   windowMs: 2 * 60 * 1000, // 1 minutes
@@ -16,9 +16,9 @@ const app = express();
 app.use(bodyParser.json());
 app.use(limiter);
 
-const foodsFile = "public/foods.json";
-const eatenFile = "public/eaten.json";
-const randomFoodFile = "public/random_food.json";
+const foodsFile = path.join(__dirname, "../files/foods.json");
+const eatenFile = path.join(__dirname, "../files/eaten.json");
+const randomFoodFile = path.join(__dirname, "../files/random_food.json");
 
 const getFoodsJson = async () => {
   const foodsJson = await fs.readFile(foodsFile, "utf-8");
@@ -47,16 +47,17 @@ async function reportLunch(seed, food) {
 
   lock = true;
 
-  sayAction(`Today bitcoin is at ${seed}`);
-
-  const clear = setInterval(() => {
-    counter++;
-    if (counter > 3) {
-      clearInterval(clear);
-      lock = false;
-    }
-    sayAction(`Today we eat ${food}`);
-  }, 5000);
+  return sayAction(`Today bitcoin is at ${seed}`).then(() => {
+    const clear = setInterval(() => {
+      console.log(counter);
+      counter++;
+      if (counter > 3) {
+        clearInterval(clear);
+        lock = false;
+      }
+      sayAction(`Today we eat ${food}`);
+    }, 5000);
+  });
 }
 
 async function remindFood(seed, cb) {
@@ -78,15 +79,8 @@ const bitcoinPrice = () => {
   );
 };
 
-// 12.45 pm Monday - Friday
-cron.schedule("45 12 * * 1-5", () => {
-  bitcoinPrice().then(data => {
-    const seed = data.data["bitcoin"]["usd"];
-    remindFood(seed);
-  });
-});
-
-app.use(express.static("public"));
+app.use(express.static(path.join(__dirname, "../dist")));
+app.use(express.static(path.join(__dirname, "../files")));
 
 // To add food
 app.post("/api/food", async (req, res) => {
@@ -152,16 +146,12 @@ app.delete("/api/eaten", async (req, res) => {
 
 // create tts
 app.post("/api/tts", (req, res) => {
-  try {
-    const { message } = req.body;
-    if (typeof message !== "string") {
-      throw new Error("message must be string");
-    }
-    say.speak(message);
-    res.status(200).json({ success: true });
-  } catch (err) {
-    res.status(403).json({ success: false, message: err.message });
+  const { message } = req.body;
+  if (typeof message !== "string") {
+    throw new Error("message must be string");
   }
+  sayAction(message);
+  res.status(200).json({ success: true });
 });
 
 app.get("/api/random_food", async (req, res) => {

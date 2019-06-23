@@ -1,11 +1,13 @@
-const say = require("say");
-const seedrandom = require("seedrandom");
-const axios = require("axios");
 const express = require("express");
 const fs = require("fs-extra");
 const bodyParser = require("body-parser");
 const rateLimit = require("express-rate-limit");
 const path = require("path");
+const graphqlHTTP = require("express-graphql");
+const { schema, root } = require("./graphql");
+const { getFoodsJson, getEatenJson, remindFood } = require("./file");
+const { sayAction, reportLunch } = require("./say");
+const { cryptoPrice } = require("./cg");
 
 const limiter = rateLimit({
   windowMs: 2 * 60 * 1000, // 1 minutes
@@ -13,71 +15,22 @@ const limiter = rateLimit({
 });
 
 const app = express();
+
 app.use(bodyParser.json());
 app.use(limiter);
+
+app.use(
+  "/graphql",
+  graphqlHTTP({
+    schema: schema,
+    rootValue: root,
+    graphiql: true
+  })
+);
 
 const foodsFile = path.join(__dirname, "../files/foods.json");
 const eatenFile = path.join(__dirname, "../files/eaten.json");
 const randomFoodFile = path.join(__dirname, "../files/random_food.json");
-
-const getFoodsJson = async () => {
-  const foodsJson = await fs.readFile(foodsFile, "utf-8");
-  return JSON.parse(foodsJson);
-};
-
-const getEatenJson = async () => {
-  const eatenJson = await fs.readFile(eatenFile, "utf-8");
-  return JSON.parse(eatenJson);
-};
-
-const sayAction = text => {
-  return new Promise((resolve, reject) => {
-    say.speak(text, "Samantha", 1.0, resolve);
-  });
-};
-
-let lock = false;
-
-async function reportLunch(seed, food) {
-  let counter = 1;
-
-  if (lock) {
-    return;
-  }
-
-  lock = true;
-
-  return sayAction(`Today bitcoin is at ${seed}`).then(() => {
-    const clear = setInterval(() => {
-      console.log(counter);
-      counter++;
-      if (counter > 3) {
-        clearInterval(clear);
-        lock = false;
-      }
-      sayAction(`Today we eat ${food}`);
-    }, 5000);
-  });
-}
-
-async function remindFood(seed, cb) {
-  const _foods = await getFoodsJson();
-  const eaten = await getEatenJson();
-  const foods = _foods.filter(f => eaten.indexOf(f) < 0);
-
-  const rng = seedrandom(seed);
-  const i = Math.floor(rng() * foods.length);
-  const food = foods[i];
-  const data = { food, price: seed };
-
-  return data;
-}
-
-const bitcoinPrice = () => {
-  return axios.get(
-    "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd"
-  );
-};
 
 app.use(express.static(path.join(__dirname, "../dist")));
 app.use(express.static(path.join(__dirname, "../files")));
@@ -155,7 +108,7 @@ app.post("/api/tts", (req, res) => {
 });
 
 app.get("/api/random_food", async (req, res) => {
-  const data = await bitcoinPrice();
+  const data = await cryptoPrice("bitcoin");
   const seed = data.data["bitcoin"]["usd"];
   const d = await remindFood(seed);
   await fs.writeFile(randomFoodFile, JSON.stringify(d));

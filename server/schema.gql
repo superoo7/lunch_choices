@@ -1,0 +1,14 @@
+type Query {
+  gql: String
+  say(msg: String!): Boolean
+  foods: [String]
+  eaten: [String]
+  cryptoPrice(id: String!): Float
+  randomFood(id: String): Food
+}
+
+type Food {
+  food: String
+  id: String
+  price: Float
+}

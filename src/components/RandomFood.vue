@@ -2,9 +2,9 @@
   <div class="row">
     <h3 class="col-12">Random Food with Crypto Price</h3>
     <div class="col-12 my-3">
-      <button @click="getRandomFood('bitcoin')" class="btn btn-lg btn-success">Bitcoin</button>
-      <button @click="getRandomFood('ethereum')" class="btn btn-lg btn-success">Ethereum</button>
-      <button @click="getRandomFood('steem')" class="btn btn-lg btn-success">Steem</button>
+      <button @click="getRandomFood('bitcoin')" class="mx-2 btn btn-lg btn-success">Bitcoin</button>
+      <button @click="getRandomFood('ethereum')" class="mx-2 btn btn-lg btn-success">Ethereum</button>
+      <button @click="getRandomFood('steem')" class="mx-2 btn btn-lg btn-success">Steem</button>
     </div>
     <div class="col-12 jumbotron">
       <h4 v-if="randomFood.food">Food: {{ randomFood.food }}</h4>

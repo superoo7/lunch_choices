@@ -1,6 +1,18 @@
 <template>
   <div class="column jumbotron">
     <h1>Welcome to What to eat for lunch site</h1>
-    <a href="http://192.168.0.192:3000" target="_blank" rel="noopener noreferrer">192.168.0.192:3000</a>
+    <a :href="currentUrl" target="_blank" rel="noopener noreferrer">{{currentUrl}}</a>
+    <h5 class="mt-5">Created by Johnson</h5>
   </div>
 </template>
+
+<script>
+export default {
+  data() {
+    return {
+      currentUrl: window.location.href
+    };
+  }
+};
+</script>
+

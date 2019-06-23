@@ -2,13 +2,7 @@
   <div id="app">
     <header>
       <ul class="nav nav-pills nav-fill">
-        <router-link
-          class="nav-item nav-link"
-          v-for="(n, key) in nav"
-          :key="key"
-          :to="n"
-          :class="n===chosen?'active':''"
-        >{{ n }}</router-link>
+        <router-link class="nav-item nav-link" v-for="(n, key) in nav" :key="key" :to="n">{{ n }}</router-link>
       </ul>
     </header>
     <main class="mt-5">
@@ -33,4 +27,13 @@ export default {
 
 
 <style>
+.router-link-active {
+  color: #fff;
+  background-color: #007bff;
+}
+
+.router-link-active:hover {
+  color: #fff;
+  background-color: #0059dd;
+}
 </style>

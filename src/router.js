@@ -5,6 +5,7 @@ import Foods from "./components/Foods.vue";
 import TTS from "./components/TTS.vue";
 import RandomFood from "./components/RandomFood.vue";
 import Developer from "./components/Developer.vue";
+import Eaten from "./components/Eaten";
 
 Vue.use(Router);
 
@@ -33,6 +34,10 @@ export default new Router({
     {
       path: "/Developer",
       component: Developer
+    },
+    {
+      path: "/Eaten",
+      component: Eaten
     }
     // {
     //   path: "/about",

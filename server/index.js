@@ -5,7 +5,12 @@ const rateLimit = require("express-rate-limit");
 const path = require("path");
 const graphqlHTTP = require("express-graphql");
 const { schema, root } = require("./graphql");
-const { getFoodsJson, getEatenJson, remindFood } = require("./file");
+const {
+  addFoodsJson,
+  addEatenJson,
+  removeEatenJson,
+  remindFood
+} = require("./file");
 const { sayAction, reportLunch } = require("./say");
 const { cryptoPrice } = require("./cg");
 
@@ -28,7 +33,6 @@ app.use(
   })
 );
 
-const foodsFile = path.join(__dirname, "../files/foods.json");
 const eatenFile = path.join(__dirname, "../files/eaten.json");
 const randomFoodFile = path.join(__dirname, "../files/random_food.json");
 
@@ -40,12 +44,7 @@ app.post("/api/food", async (req, res) => {
   // expect json in an array;
   try {
     const { food } = req.body;
-    if (typeof food !== "string") {
-      throw new Error("food must be string");
-    }
-    const foods = await getFoodsJson();
-    foods.push(food);
-    await fs.writeFile(foodsFile, JSON.stringify(foods));
+    const foods = await addFoodsJson(food);
     res.status(200).json(foods);
   } catch (err) {
     res.status(403).json({ success: false, message: err.message });
@@ -57,19 +56,7 @@ app.post("/api/eaten", async (req, res) => {
   // expect json in an array;
   try {
     const { eaten } = req.body;
-    if (typeof eaten !== "string") {
-      throw new Error("eaten must be string");
-    }
-    const foods = await getFoodsJson();
-    if (foods.indexOf(eaten) < 0) {
-      throw new Error("eaten is not in foods.json");
-    }
-    const eatenFoods = await getEatenJson();
-    if (eatenFoods.indexOf(eaten) >= 0) {
-      throw new Error("eaten is in eaten.json already");
-    }
-    eatenFoods.push(eaten);
-    await fs.writeFile(eatenFile, JSON.stringify(eatenFoods));
+    const eatenFoods = await addEatenJson(eaten);
     res.status(200).json(eatenFoods);
   } catch (err) {
     res.status(403).json({ success: false, message: err.message });
@@ -81,16 +68,7 @@ app.delete("/api/eaten", async (req, res) => {
   // expect json in an array;
   try {
     const { eaten } = req.body;
-    if (typeof eaten !== "string") {
-      throw new Error("eaten must be string");
-    }
-    let eatenFoods = await getEatenJson();
-    const i = eatenFoods.indexOf(eaten);
-    if (i < 0) {
-      throw new Error("eaten is not in eaten.json");
-    }
-    eatenFoods = eatenFoods.filter((_d, key) => key !== i);
-    await fs.writeFile(eatenFile, JSON.stringify(eatenFoods));
+    const eatenFoods = await removeEatenJson(eaten);
     res.status(200).json(eatenFoods);
   } catch (err) {
     res.status(403).json({ success: false, message: err.message });

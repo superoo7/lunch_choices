@@ -3,6 +3,7 @@ const fs = require("fs-extra");
 const bodyParser = require("body-parser");
 const rateLimit = require("express-rate-limit");
 const path = require("path");
+const cors = require("cors");
 const graphqlHTTP = require("express-graphql");
 const { schema, root } = require("./graphql");
 const {
@@ -21,6 +22,7 @@ const limiter = rateLimit({
 
 const app = express();
 
+app.use(cors());
 app.use(bodyParser.json());
 app.use(limiter);
 

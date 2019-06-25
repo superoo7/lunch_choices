@@ -74,25 +74,15 @@ password: raspberry
 </template>
 
 <script>
+import gql from "graphql-tag";
+
 export default {
-  data() {
-    return { gql: "" };
-  },
-  methods: {
-    async fetchGQL() {
-      const res = await fetch("/graphql", {
-        headers: { "Content-Type": "application/json" },
-        method: "POST",
-        body: JSON.stringify({
-          query: "{gql}"
-        })
-      });
-      const { data } = await res.json();
-      this.gql = data.gql;
-    }
-  },
-  created() {
-    this.fetchGQL();
+  apollo: {
+    gql: gql`
+      query {
+        gql
+      }
+    `
   }
 };
 </script>

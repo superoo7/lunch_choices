@@ -9,7 +9,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="(f, key) in store.eaten" :key="key">
+        <tr v-for="(f, key) in eaten" :key="key">
           <th scope="row">{{ key + 1 }}</th>
           <td>{{ f }}</td>
           <td>
@@ -27,6 +27,9 @@
 
 <script>
 import store from "../store";
+import gql from "graphql-tag";
+
+window.gql = gql;
 
 export default {
   data() {
@@ -34,70 +37,56 @@ export default {
       store: store.state
     };
   },
-  methods: {
-    async getFoods() {
-      const res = await fetch("/graphql", {
-        headers: { "Content-Type": "application/json" },
-        method: "POST",
-        body: JSON.stringify({
-          query: "{foods}"
-        })
-      });
-      const { data } = await res.json();
-      store.setFoods(data.foods);
-    },
-    async getEaten() {
-      const res = await fetch("/graphql", {
-        headers: { "Content-Type": "application/json" },
-        method: "POST",
-        body: JSON.stringify({
-          query: "{eaten}"
-        })
-      });
-      const { data } = await res.json();
-      store.setEaten(data.eaten);
-    },
-    async addEaten(e) {
-      const val = e.target.value;
-      if (val === "") {
-        window.showSnackbar("No value entered");
-        return;
+  apollo: {
+    foods: gql`
+      query {
+        foods
       }
-      const res = await fetch("/graphql", {
-        method: "POST",
-        body: JSON.stringify({
-          query: `mutation { addEaten(eaten: "${val}") }`
-        }),
-        headers: {
-          "Content-Type": "application/json"
-        }
-      });
-      const { data } = await res.json();
-      store.setEaten(data.addEaten);
-      e.target.value = "";
-      window.showSnackbar("Added " + val);
-    },
-    async removeEaten(val) {
-      const res = await fetch("/graphql", {
-        method: "POST",
-        body: JSON.stringify({
-          query: `mutation { removeEaten(eaten: "${val}") }`
-        }),
-        headers: {
-          "Content-Type": "application/json"
-        }
-      });
-      const { data } = await res.json();
-      window.showSnackbar("Deleted " + val);
-      store.setEaten(data.removeEaten);
-    }
+    `,
+    eaten: gql`
+      query {
+        eaten
+      }
+    `
   },
-  created() {
-    if (this.store.foods.length === 0) {
-      this.getFoods();
-    }
-    if (this.store.eaten.length === 0) {
-      this.getEaten();
+  methods: {
+    addEaten(e) {
+      const val = e.target.value;
+      this.$apollo.mutate({
+        mutation: gql`
+          mutation {
+          addEaten(eaten: "${val}")
+          }
+        `,
+        update: (store, { data: { addEaten } }) => {
+          store.writeQuery({
+            query: gql`
+              query {
+                eaten
+              }
+            `,
+            data: { eaten: addEaten }
+          });
+          e.target.value = "";
+          window.showSnackbar("Added " + val);
+        }
+      });
+    },
+    removeEaten(val) {
+      this.$apollo.mutate({
+        mutation: gql`mutation { removeEaten(eaten: "${val}") }`,
+        update: (store, { data: { removeEaten } }) => {
+          store.writeQuery({
+            query: gql`
+              query {
+                eaten
+              }
+            `,
+            data: { eaten: removeEaten }
+          });
+          window.showSnackbar("Removed " + val);
+        }
+      });
     }
   }
 };

@@ -2,15 +2,15 @@ type Mutation {
   addFood(food: String!): [String]
   addEaten(eaten: String!): [String]
   removeEaten(eaten: String!): [String]
+  randomFood(id: String): Food
+  say(msg: String!): Boolean
 }
 
 type Query {
   gql: String
-  say(msg: String!): Boolean
   foods: [String]
   eaten: [String]
   cryptoPrice(id: String!): Float
-  randomFood(id: String): Food
 }
 
 type Food {

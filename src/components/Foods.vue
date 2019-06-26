@@ -68,7 +68,9 @@ export default {
           });
           window.showSnackbar("Added " + val);
         }
-      });
+      }).catch(error => {
+          window.showSnackbar(error.message);
+        });
     },
     removeEaten(val) {
       this.$apollo.mutate({
@@ -84,7 +86,9 @@ export default {
           });
           window.showSnackbar("Removed " + val);
         }
-      });
+      })      .catch(error => {
+          window.showSnackbar(error.message);
+        });
     },
    addFood(e) {
       const val = e.target.value;
@@ -106,7 +110,9 @@ export default {
           e.target.value = "";
           window.showSnackbar("Added " + val);
         }
-      });
+      })      .catch(error => {
+          window.showSnackbar(error.message);
+        });
     }, 
     isEaten(f) {
       return this.eaten ? this.eaten.indexOf(f) >= 0 : false;

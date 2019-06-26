@@ -9,23 +9,27 @@
 </template>
 
 <script>
+import gql from "graphql-tag";
+
 export default {
   methods: {
-    async createTTS(e) {
+    createTTS(e) {
       const val = e.target.value;
-      if (val === "") {
-        window.showSnackbar("No value entered");
-        return;
-      }
-      await fetch("/graphql", {
-        method: "POST",
-        body: JSON.stringify({ query: `{say(msg: "${val}")}` }),
-        headers: {
-          "Content-Type": "application/json"
-        }
-      });
-      e.target.value = "";
-      window.showSnackbar("Send TTS msg:\n" + val);
+      this.$apollo
+        .mutate({
+          mutation: gql`mutation {say(msg: "${val}")} `,
+          update: (store, { data: { say } }) => {
+            if (say) {
+              e.target.value = "";
+              window.showSnackbar("Send TTS msg:\n" + val);
+            } else {
+              window.showSnackbar("Failed to send TTS message");
+            }
+          }
+        })
+        .catch(error => {
+          window.showSnackbar(error.message);
+        });
     }
   }
 };

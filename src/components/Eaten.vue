@@ -29,8 +29,6 @@
 import store from "../store";
 import gql from "graphql-tag";
 
-window.gql = gql;
-
 export default {
   data() {
     return {
@@ -52,41 +50,49 @@ export default {
   methods: {
     addEaten(e) {
       const val = e.target.value;
-      this.$apollo.mutate({
-        mutation: gql`
+      this.$apollo
+        .mutate({
+          mutation: gql`
           mutation {
           addEaten(eaten: "${val}")
           }
         `,
-        update: (store, { data: { addEaten } }) => {
-          store.writeQuery({
-            query: gql`
-              query {
-                eaten
-              }
-            `,
-            data: { eaten: addEaten }
-          });
-          e.target.value = "";
-          window.showSnackbar("Added " + val);
-        }
-      });
+          update: (store, { data: { addEaten } }) => {
+            store.writeQuery({
+              query: gql`
+                query {
+                  eaten
+                }
+              `,
+              data: { eaten: addEaten }
+            });
+            e.target.value = "";
+            window.showSnackbar("Added " + val);
+          }
+        })
+        .catch(error => {
+          window.showSnackbar(error.message);
+        });
     },
     removeEaten(val) {
-      this.$apollo.mutate({
-        mutation: gql`mutation { removeEaten(eaten: "${val}") }`,
-        update: (store, { data: { removeEaten } }) => {
-          store.writeQuery({
-            query: gql`
-              query {
-                eaten
-              }
-            `,
-            data: { eaten: removeEaten }
-          });
-          window.showSnackbar("Removed " + val);
-        }
-      });
+      this.$apollo
+        .mutate({
+          mutation: gql`mutation { removeEaten(eaten: "${val}") }`,
+          update: (store, { data: { removeEaten } }) => {
+            store.writeQuery({
+              query: gql`
+                query {
+                  eaten
+                }
+              `,
+              data: { eaten: removeEaten }
+            });
+            window.showSnackbar("Removed " + val);
+          }
+        })
+        .catch(error => {
+          window.showSnackbar(error.message);
+        });
     }
   }
 };

@@ -8,7 +8,7 @@
     </div>
     <div class="col-12 jumbotron">
       <h4 v-if="randomFood.food">Food: {{ randomFood.food }}</h4>
-      <h4 v-if="randomFood.price">{{randomFood.id}} Price: {{ randomFood.price }}</h4>
+      <h4 v-if="randomFood.price">{{randomFood.id.toUpperCase()}} Price: {{ randomFood.price }}</h4>
     </div>
   </div>
 </template>
@@ -20,24 +20,18 @@ export default {
   },
   methods: {
     async getRandomFood(coin) {
-      const res = await fetch("/graphql", {
-        method: "POST",
-        body: JSON.stringify({
-          query: `{
+      this.$apollo.mutate({
+        mutation: gql`mutation {
   randomFood(id: "${coin}") {
     id
     price
     food
-  }
-}
-`
-        }),
-        headers: {
-          "Content-Type": "application/json"
+  },
+}`,
+        update: (store, { data }) => {
+          this.randomFood = data.randomFood;
         }
       });
-      const { data } = await res.json();
-      this.randomFood = data.randomFood;
     }
   }
 };

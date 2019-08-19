@@ -1,4 +1,3 @@
-const { buildSchema } = require("graphql");
 const fs = require("fs-extra");
 const path = require("path");
 const { sayAction, reportLunch } = require("./say");
@@ -16,21 +15,14 @@ const gqlSchema = fs.readFileSync(
   path.join(__dirname, "./schema.gql"),
   "UTF-8"
 );
-const schema = buildSchema(gqlSchema);
+const schema = gqlSchema;
 
-const root = {
+const Query = {
   // Query
   gql: () => {
     return gqlSchema;
   },
-  say: async ({ msg }) => {
-    try {
-      sayAction(msg);
-      return true;
-    } catch (error) {
-      return false;
-    }
-  },
+
   foods: async () => {
     const foods = await getFoodsJson();
     return foods;
@@ -42,8 +34,32 @@ const root = {
   cryptoPrice: async ({ id }) => {
     const { data } = await cryptoPrice(id);
     return data[id]["usd"];
+  }
+};
+
+const Mutation = {
+  // Mutation
+  addFood: async (_, { food }) => {
+    const foods = await addFoodsJson(food);
+    return foods;
   },
-  randomFood: async ({ id = "bitcoin" }) => {
+  addEaten: async (_, { eaten }) => {
+    const eatenFoods = await addEatenJson(eaten);
+    return eatenFoods;
+  },
+  removeEaten: async (_, { eaten }) => {
+    const eatenFoods = await removeEatenJson(eaten);
+    return eatenFoods;
+  },
+  say: async (_, { msg }) => {
+    try {
+      sayAction(msg);
+      return true;
+    } catch (error) {
+      return false;
+    }
+  },
+  randomFood: async (_, { id = "bitcoin" }) => {
     const { data } = await cryptoPrice(id);
     const price = data[id]["usd"];
     const { food } = await remindFood(price);
@@ -53,23 +69,15 @@ const root = {
       id,
       price
     };
-  },
-  // Mutation
-  addFood: async ({ food }) => {
-    const foods = await addFoodsJson(food);
-    return foods;
-  },
-  addEaten: async ({ eaten }) => {
-    const eatenFoods = await addEatenJson(eaten);
-    return eatenFoods;
-  },
-  removeEaten: async ({ eaten }) => {
-    const eatenFoods = await removeEatenJson(eaten);
-    return eatenFoods;
   }
+};
+
+const resolvers = {
+  Query,
+  Mutation
 };
 
 module.exports = {
   schema,
-  root
+  resolvers
 };

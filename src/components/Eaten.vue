@@ -20,7 +20,7 @@
     </table>
 
     <div class="input-group mb-3">
-      <input @keyup.enter="addEaten" type="text" class="form-control" placeholder="Add Eaten">
+      <input @keyup.enter="addEaten" type="text" class="form-control" placeholder="Add Eaten" />
     </div>
   </div>
 </template>
